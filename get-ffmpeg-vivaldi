@@ -21,7 +21,7 @@ if [ $dir = "xx" ]
 then
 	echo "To install FFMPEG codec for stable version   : get-ffmpeg-vivaldi stable"
 	echo "To install FFMPEG codec for snapshot version : get-ffmpeg-vivaldi snapshot"
-	exit 2;
+	exit 0;
 fi
 
 if [ $id -eq 0 ]
@@ -36,6 +36,7 @@ then
 		echo "Download OK !"
 	else
 		echo "Download Failed !"
+		exit 2
 	fi
 	echo Extracting FFMPEG for Vivaldi $branch...
 	tar -xf $tar -C . 2>/dev/null
@@ -44,6 +45,7 @@ then
 		echo "Extraction OK !"
 	else
 		echo "Extraction Failed !"
+		exit 3
 	fi
 	echo Installing FFMPEG for Vivaldi $branch...
 	cp opt/$dir/libffmpeg.so /opt/$dir/libffmpeg.so
@@ -54,8 +56,10 @@ then
 		rm -rf /tmp/get-ffmpeg-vivaldi-$branch
 	else
 		echo "Install Failed !"
+		exit 4
 	fi
 else
 	echo Program must be executed with root right
+	exit 1
 fi
 
