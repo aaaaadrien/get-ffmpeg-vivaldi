@@ -1,21 +1,24 @@
 #! /bin/bash
 
+
 id=$(id -u)
 branch="$1"
-url="https://repo.herecura.eu/herecura/x86_64/"
+url="http://security.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/"
 dir="xx"
 
 if [ "$branch" = "stable" ]
 then
-	tar=$(wget -O - -q $url | grep vivaldi-ffmpeg-codecs | grep -v sig | tail -1 | cut -d'"' -f2)
 	dir="vivaldi"
 fi
 
 if [ "$branch" = "snapshot" ]
 then
-	tar=$(wget -O - -q $url | grep vivaldi-snapshot-ffmpeg-codecs | grep -v sig | tail -1 | cut -d'"' -f2)
 	dir="vivaldi-snapshot"
 fi
+
+# TODO  : check arch
+# 17.10 = glibc2.26
+tar=$(wget -O - -q $url | grep chromium-codecs-ffmpeg-extra | grep "17.10" | grep amd64 | tail -1 | cut -d'"' -f8)
 
 if [ $dir = "xx" ]
 then
@@ -39,7 +42,13 @@ then
 		exit 2
 	fi
 	echo Extracting FFMPEG for Vivaldi $branch...
-	tar -xf $tar -C . 2>/dev/null
+	ar x $tar
+	if [ $? -eq 0 ]
+	then
+		tar -xf data.tar.xz -C . 2>/dev/null
+	else
+		ls /un-chemin-pour-retourner-une-erreur-mdr
+	fi
 	if [ $? -eq 0 ]
 	then
 		echo "Extraction OK !"
@@ -48,15 +57,28 @@ then
 		exit 3
 	fi
 	echo Installing FFMPEG for Vivaldi $branch...
-	cp opt/$dir/libffmpeg.so /opt/$dir/libffmpeg.so
+	cp -f usr/lib/chromium-browser/libffmpeg.so /opt/$dir/libffmpeg.so
 	if [ $? -eq 0 ]
 	then
 		echo "Install OK !"
-		rm -f /tmp/$tar
-		rm -rf /tmp/get-ffmpeg-vivaldi-$branch
 	else
 		echo "Install Failed !"
 		exit 4
+	fi
+
+	echo "Search for missing dependancies or wrong versions on your system ..."
+	LANGUAGE=en ldd /opt/vivaldi-$branch/libffmpeg.so 2>/dev/null | grep "not found"
+	echo "Searching completed !"
+	
+
+	echo "Cleaning temporary files ..."
+	rm -rf /tmp/get-ffmpeg-vivaldi-$branch
+	if [ $? -eq 0 ]
+	then
+		echo "Clean OK !"
+	else
+		echo "Clean Failed !"
+		exit 5
 	fi
 else
 	echo Program must be executed with root right
