@@ -75,11 +75,13 @@ then
 	rm -rf /tmp/get-ffmpeg-vivaldi-$branch
 	if [ $? -eq 0 ]
 	then
-		echo "Clean OK !"
+		echo -e "Clean OK !\n"
 	else
-		echo "Clean Failed !"
+		echo -e "Clean Failed !\n"
 		exit 5
 	fi
+
+	echo "INFO : restart Vivaldi now !"
 else
 	echo Program must be executed with root right
 	exit 1
