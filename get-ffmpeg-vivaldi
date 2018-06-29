@@ -20,6 +20,7 @@ fi
 # 17.10 = glibc2.26
 tar=$(wget -O - -q $url | grep chromium-codecs-ffmpeg-extra | grep "17.10" | grep amd64 | tail -1 | cut -d'"' -f8)
 
+
 if [ $dir = "xx" ]
 then
 	echo "To install FFMPEG codec for stable version   : get-ffmpeg-vivaldi stable"
@@ -29,6 +30,8 @@ fi
 
 if [ $id -eq 0 ]
 then
+	version=$(echo $tar | cut -d'_' -f2 | cut -d'-' -f1)
+	echo Checking version of chromium-codecs-ffmpeg-extra : $version ...
 	cd /tmp
 	mkdir get-ffmpeg-vivaldi-$branch
 	cd get-ffmpeg-vivaldi-$branch
