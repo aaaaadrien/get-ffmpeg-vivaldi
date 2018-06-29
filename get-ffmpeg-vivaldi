@@ -3,7 +3,8 @@
 
 id=$(id -u)
 branch="$1"
-url="http://security.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/"
+#url="http://security.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/"
+url="http://ppa.launchpad.net/saiarcot895/chromium-beta/ubuntu/pool/main/c/chromium-browser/"
 dir="xx"
 
 if [ "$branch" = "stable" ]
@@ -17,8 +18,8 @@ then
 fi
 
 # TODO  : check arch
-# 17.10 = glibc2.26
-tar=$(wget -O - -q $url | grep chromium-codecs-ffmpeg-extra | grep "17.10" | grep amd64 | tail -1 | cut -d'"' -f8)
+# 16.04 = glibc2.26
+tar=$(wget -O - -q $url | grep chromium-codecs-ffmpeg-extra | grep "16.04" | grep amd64 | tail -1 | cut -d'"' -f8)
 
 
 if [ $dir = "xx" ]
