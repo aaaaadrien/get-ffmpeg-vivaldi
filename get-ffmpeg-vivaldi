@@ -3,9 +3,11 @@
 
 id=$(id -u)
 branch="$1"
+action="$2"
 #url="http://security.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/"
 url="http://ppa.launchpad.net/saiarcot895/chromium-beta/ubuntu/pool/main/c/chromium-browser/"
 dir="xx"
+uninstall="xx"
 
 if [ "$branch" = "stable" ]
 then
@@ -17,6 +19,11 @@ then
 	dir="vivaldi-snapshot"
 fi
 
+if [ "$action" = "uninstall" ]
+then
+	uninstall="ok"
+fi
+
 # TODO  : check arch
 # 16.04 = glibc2.26
 tar=$(wget -O - -q $url | grep chromium-codecs-ffmpeg-extra | grep "16.04" | grep amd64 | tail -1 | cut -d'"' -f8)
@@ -26,66 +33,82 @@ if [ $dir = "xx" ]
 then
 	echo "To install FFMPEG codec for stable version   : get-ffmpeg-vivaldi stable"
 	echo "To install FFMPEG codec for snapshot version : get-ffmpeg-vivaldi snapshot"
+	echo "To uninstall FFMPEG codec for stable version   : get-ffmpeg-vivaldi stable uninstall"
+	echo "To uninstall FFMPEG codec for snapshot version : get-ffmpeg-vivaldi snapshot uninstall"
 	exit 0;
 fi
 
 if [ $id -eq 0 ]
 then
-	version=$(echo $tar | cut -d'_' -f2 | cut -d'-' -f1)
-	echo Checking version of chromium-codecs-ffmpeg-extra : $version ...
-	cd /tmp
-	mkdir get-ffmpeg-vivaldi-$branch
-	cd get-ffmpeg-vivaldi-$branch
-	echo Downloading FFMPEG for Vivaldi $branch...
-	wget -q "$url$tar"
-	if [ $? -eq 0 ]
+	if [ "$uninstall" != "ok" ]
 	then
-		echo "Download OK !"
-	else
-		echo "Download Failed !"
-		exit 2
-	fi
-	echo Extracting FFMPEG for Vivaldi $branch...
-	ar x $tar
-	if [ $? -eq 0 ]
-	then
-		tar -xf data.tar.xz -C . 2>/dev/null
-	else
-		ls /un-chemin-pour-retourner-une-erreur-mdr
-	fi
-	if [ $? -eq 0 ]
-	then
-		echo "Extraction OK !"
-	else
-		echo "Extraction Failed !"
-		exit 3
-	fi
-	echo Installing FFMPEG for Vivaldi $branch...
-	cp -f usr/lib/chromium-browser/libffmpeg.so /opt/$dir/libffmpeg.so
-	if [ $? -eq 0 ]
-	then
-		echo "Install OK !"
-	else
-		echo "Install Failed !"
-		exit 4
-	fi
+		version=$(echo $tar | cut -d'_' -f2 | cut -d'-' -f1)
+		echo Checking version of chromium-codecs-ffmpeg-extra : $version ...
+		cd /tmp
+		mkdir get-ffmpeg-vivaldi-$branch
+		cd get-ffmpeg-vivaldi-$branch
+		echo Downloading FFMPEG for Vivaldi $branch...
+		wget -q "$url$tar"
+		if [ $? -eq 0 ]
+		then
+			echo "Download OK !"
+		else
+			echo "Download Failed !"
+			exit 2
+		fi
+		echo Extracting FFMPEG for Vivaldi $branch...
+		ar x $tar
+		if [ $? -eq 0 ]
+		then
+			tar -xf data.tar.xz -C . 2>/dev/null
+		else
+			ls /un-chemin-pour-retourner-une-erreur-mdr
+		fi
+		if [ $? -eq 0 ]
+		then
+			echo "Extraction OK !"
+		else
+			echo "Extraction Failed !"
+			exit 3
+		fi
+		echo Installing FFMPEG for Vivaldi $branch...
+		cp -f usr/lib/chromium-browser/libffmpeg.so /opt/$dir/libffmpeg.so
+		if [ $? -eq 0 ]
+		then
+			echo "Install OK !"
+			echo "libffmpeg version : $version" > /opt/$dir/libffmpeg-version.log
+		else
+			echo "Install Failed !"
+			exit 4
+		fi
 
-	echo "Search for missing dependancies or wrong versions on your system ..."
-	LANGUAGE=en ldd /opt/vivaldi-$branch/libffmpeg.so 2>/dev/null | grep "not found"
-	echo "Searching completed !"
-	
+		echo "Search for missing dependancies or wrong versions on your system ..."
+		LANGUAGE=en ldd /opt/vivaldi-$branch/libffmpeg.so 2>/dev/null | grep "not found"
+		echo "Searching completed !"
+		
 
-	echo "Cleaning temporary files ..."
-	rm -rf /tmp/get-ffmpeg-vivaldi-$branch
-	if [ $? -eq 0 ]
-	then
-		echo -e "Clean OK !\n"
+		echo "Cleaning temporary files ..."
+		rm -rf /tmp/get-ffmpeg-vivaldi-$branch
+		if [ $? -eq 0 ]
+		then
+			echo -e "Clean OK !\n"
+		else
+			echo -e "Clean Failed !\n"
+			exit 5
+		fi
+
+		echo "INFO : restart Vivaldi now !"
 	else
-		echo -e "Clean Failed !\n"
-		exit 5
+		echo Uninstalling FFMPEG for Vivaldi $branch...
+		rm -f /opt/$dir/libffmpeg{.so,-version.log}
+		if [ $? -eq 0 ]
+		then
+			echo "Uninstall OK !"
+		else
+			echo "Uninstall Failed !"
+			exit 6
+		fi
 	fi
-
-	echo "INFO : restart Vivaldi now !"
 else
 	echo Program must be executed with root right
 	exit 1
